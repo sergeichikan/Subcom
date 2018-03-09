@@ -9,12 +9,18 @@ contexts:
   main:
     # - match: '│e│.*?│'
       # scope: meta.esubcom
-    - match: '│.+?│'
-      scope: meta.name_subcom
 
-    - match: '~ .+?│'
-      scope: meta.com_subcom
     # - match: '\[.+?\]'
     #   scope: meta.tag_subcom
-    - match: '~[^ ].*?│'
-      scope: meta.path_subcom
+
+    - match: "(│.*?│)(?:((/.*?)│)|((~.*?)│)|((-.*?)│))"
+      captures:
+        1: meta.name_subcom
+        2: meta.path_subcom
+        3: meta.fold_subcom
+        4: meta.path_subcom
+        5: meta.fold_subcom
+        6: meta.com_subcom
+        7: meta.fold_subcom
+
+

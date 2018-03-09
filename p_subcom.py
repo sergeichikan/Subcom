@@ -33,6 +33,13 @@ import Subcom.subcom_core
 
 # all_meta = ["~", "-", "=", "f", "d", "p", "e", "t", "n"]
 
+# │name│/full_path│
+# │name│~short_path│
+# │name│- command│
+# │name│-x command_in_console│
+# │name│-H -x command_in_no_exit_console│
+# │name│-f command_url_in_firefox│
+
 class POpenSubcomCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         self.view.run_command("expand_selection", {"to": "word"})
@@ -40,42 +47,38 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
             region = self.view.sel()[0]
             line = self.view.line(region)
             self.subcom_main = Subcom.subcom_core.subcom_main()
-            if self.view.scope_name(region.a) == 'text.sm meta.name_subcom ':
+            if self.view.scope_name(region.a) == 'source.text_sm meta.name_subcom ':
                 line_end = self.view.substr(sublime.Region(region.b, line.b))
-                i_beg = line_end.find('│~')
-                if i_beg == -1:
-                    pass
-                else:
-                    line_end = line_end[i_beg + 1:]
-                    i_end = line_end.find('│')
-                    if i_end != -1:
-                        subcom = line_end[:i_end + 1]
-                        class_of_text, text = self.subcom_main.class_of_text(subcom)
-                        html = self.generate_html(body='<a class="{0}" href="{0}\t{1}">{2}</a>'.format(class_of_text, text, subcom))
-                        self.view.show_popup(html, max_width=1200, max_height=670, on_navigate=self.popup)
-            else:
-                line_beg = self.view.substr(sublime.Region(line.a, region.a))
-                i_beg = max([line_beg.rfind(i) for i in ["│", "[", "~"]])
-                # self.end = line.b
-                if i_beg != -1:
-                    line_end = self.view.substr(sublime.Region(region.b, line.b))
-                    if line_beg[i_beg] == "│":
-                        i_end = line_end.find("│")
-                        if i_end != -1:
-                            name = line_beg[i_beg+1:] + self.view.substr(region) + line_end[:i_end]
-                            self.run_name_subcom(name)
-                    elif line_beg[i_beg] == "[":
-                        i_end = line_end.find("]")
-                        if i_end != -1:
-                            tag = self.view.substr(region)
-                            self.run_tag(tag)
-                    elif line_beg[i_beg] == "~":
-                        i_end = line_end.find("│")
-                        if i_end != -1:
-                            subcom = line_beg[i_beg:] + self.view.substr(region) + line_end[:i_end+1]
-                            class_of_text, text = self.subcom_main.class_of_text(subcom)
-                            html = self.generate_html(body='<a class="{0}" href="{0}\t{1}">{2}</a>'.format(class_of_text, text, subcom))
-                            self.view.show_popup(html, max_width=1200, max_height=670, on_navigate=self.popup)
+                i_beg = line_end.index('│') + 1
+                i_end = line_end.index('│', i_beg)
+                subcom = line_end[i_beg:i_end]
+                class_of_text, text = self.subcom_main.class_of_text(subcom)
+                html = self.generate_html(body='<a class="{0}" href="{0}\t{1}">{2}</a>'.format(class_of_text, text, subcom))
+                self.view.show_popup(html, max_width=1200, max_height=670, on_navigate=self.popup)
+
+            # else:
+            #     line_beg = self.view.substr(sublime.Region(line.a, region.a))
+            #     i_beg = max([line_beg.rfind(i) for i in ["│", "[", "~"]])
+            #     # self.end = line.b
+            #     if i_beg != -1:
+            #         line_end = self.view.substr(sublime.Region(region.b, line.b))
+            #         if line_beg[i_beg] == "│":
+            #             i_end = line_end.find("│")
+            #             if i_end != -1:
+            #                 name = line_beg[i_beg+1:] + self.view.substr(region) + line_end[:i_end]
+            #                 self.run_name_subcom(name)
+            #         elif line_beg[i_beg] == "[":
+            #             i_end = line_end.find("]")
+            #             if i_end != -1:
+            #                 tag = self.view.substr(region)
+            #                 self.run_tag(tag)
+            #         elif line_beg[i_beg] == "~":
+            #             i_end = line_end.find("│")
+            #             if i_end != -1:
+            #                 subcom = line_beg[i_beg:] + self.view.substr(region) + line_end[:i_end+1]
+            #                 class_of_text, text = self.subcom_main.class_of_text(subcom)
+            #                 html = self.generate_html(body='<a class="{0}" href="{0}\t{1}">{2}</a>'.format(class_of_text, text, subcom))
+            #                 self.view.show_popup(html, max_width=1200, max_height=670, on_navigate=self.popup)
 
     def popup(self, href):
         text_class, text = href.split("\t")
@@ -92,8 +95,8 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
             webbrowser.open_new_tab(text)
 
     def generate_html(  self,
-                        top = r'''<body id="subcom"><style>a {text-decoration: none;} a.tag {color: #787878;} a.name_subcom {color: #AC885B;}
-                        a.path_subcom {color: #5377a4;} a.com_subcom {color: #894d4d;}</style>''',
+                        top = r'''<body><style>a {text-decoration: none} .tag {color: #787878} .name_subcom {color: #AC885B}
+                        .path_subcom {color: #416341} .com_subcom {color: #a31313}</style>''',
                         head = "",
                         body = "",
                         tail = "",

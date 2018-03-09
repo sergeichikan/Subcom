@@ -9,24 +9,23 @@ class subcom_main():
         self.name_subcom = "name_subcom"
         self.com_subcom = "com_subcom"
         self.path_subcom = "path_subcom"
-        self.url_subcom = "url_subcom"
         self.file_class = "file"
         self.sublime_project_file_ext = "sublime-project"
         self.video_file_ext = "video"
         self.music_file_ext  = "music"
         self.dir_class = "directory"
         self.error_path_class = "error_path"
-        self.short_dict = {     "notus": "/home/notus",
-                                "Dropbox": "notus/Dropbox",
-                                "Docs": "Dropbox/Docs",
-                                "Sublime Projects": "Docs/Main/Sublime Projects",
-                                "User": "notus/.config/sublime-text-3/Packages/User",
-                                "MEGA": "notus/MEGA",
-                                "Seagate": "/media/notus/Seagate",
-                                "opt": "/opt",
-                                "usr": "/usr",
-                                "Конфиги": "Docs/Конфиги",
-                                "Загрузки": "notus/Загрузки" }
+        self.short_dict = {     "~notus": "/home/notus",
+                                "~Dropbox": "~notus/Dropbox",
+                                "~Docs": "~Dropbox/Docs",
+                                "~Sublime Projects": "~Docs/Main/Sublime Projects",
+                                "~User": "~notus/.config/sublime-text-3/Packages/User",
+                                "~MEGA": "~notus/MEGA",
+                                "~Seagate": "/media/notus/Seagate",
+                                "~opt": "/opt",
+                                "~usr": "/usr",
+                                "~Конфиги": "~Docs/Конфиги",
+                                "~Загрузки": "~notus/Загрузки" }
 
     def expand_path(self, short_path):
         if short_path[0] == "/":
@@ -40,26 +39,18 @@ class subcom_main():
 
     def class_of_text(self, text):
         text_class = "text"
-        if text:
-            if text[0] == "[" and text[-1] == "]":
-                text_class = self.tag_subcom
-                text = text[1:-1]
-            elif text[:4] == "http":
-                text_class = self.url_subcom
-            elif text[-1] == "│":
-                text = text[:-1]
-                if text[0] == "│":
-                    text_class = self.name_subcom
-                    text = text[1:]
-                elif text[0] == "~":
-                    text = text[1:]
-                    if text[0] == " ":
-                        text_class = self.com_subcom
-                        text = text[1:]
-                        if text[:6] == "-H -x " or text[:3] == "-x ": text = "xfce4-terminal " + text
-                    else:
-                        text_class = self.path_subcom
-                        if text[0] != "/": text = self.expand_path(text)
+        if text[0] in ['/', '~']:
+            text = self.expand_path(text)
+            text_class = self.path_subcom
+        elif text[:2] == '- ':
+            text_class = self.com_subcom
+            text = text[2:]
+        elif text[:2] == '-f':
+            text_class = self.com_subcom
+            text = "firefox" + text[2:]
+        elif text[:3] == '-x ' or text[:6] == '-H -x ':
+            text_class = self.com_subcom
+            text = "xfce4-terminal " + text
         return(text_class, text)
 
     def class_of_path(self, path):
