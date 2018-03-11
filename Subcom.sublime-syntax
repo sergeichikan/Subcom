@@ -10,17 +10,31 @@ contexts:
     # - match: '│e│.*?│'
       # scope: meta.esubcom
 
-    # - match: '\[.+?\]'
-    #   scope: meta.tag_subcom
+    - match: '#\w+'
+      scope: meta.tag_subcom
 
-    - match: "(│.*?│)(?:((/.*?)│)|((~.*?)│)|((-.*?)│))"
+    # - match: '(│.*?│)(?:((/.+?)│)|((~.+?)│)|((-.+?)│))'
+    #   captures:
+    #     1: meta.name_subcom
+    #     2: meta.path_subcom
+    #     3: meta.fold_subcom
+    #     4: meta.path_subcom
+    #     5: meta.fold_subcom
+    #     6: meta.com_subcom
+    #     7: meta.fold_subcom
+
+    # (│.*?\[(.*?)\].*?│)(?:((/.*?)│)|((~.*?)│)|((-.*?)│))
+    # - match: '(│.*?│)(?:((/.+?)│)|((/.+?(\[.+?\])+.*?)│)|((~.+?)│)|((-.+?)│))'
+
+    - match: '(?:(│.*?(\[.*?\]).*?│)|(│.*?│))(?:((/.+?)│)|((~.+?)│)|((-.+?)│))'
       captures:
         1: meta.name_subcom
-        2: meta.path_subcom
-        3: meta.fold_subcom
+        2: meta.tag_subcom
+        3: meta.name_subcom
         4: meta.path_subcom
         5: meta.fold_subcom
-        6: meta.com_subcom
+        6: meta.path_subcom
         7: meta.fold_subcom
-
+        8: meta.com_subcom
+        9: meta.fold_subcom
 

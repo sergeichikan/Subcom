@@ -1,5 +1,12 @@
-import subprocess
+# import subprocess
 import os.path
+
+# │name│/full_path│
+# │name│~short_path│
+# │name│- command│
+# │name│-x command_in_console│
+# │name│-H -x command_in_no_exit_console│
+# │name│-f command_url_in_firefox│
 
 class subcom_main():
     def __init__(self):
@@ -37,21 +44,15 @@ class subcom_main():
             new_short_path = e + slash + last_part
             return self.expand_path(short_path = new_short_path)
 
-    def class_of_text(self, text):
-        text_class = "text"
-        if text[0] in ['/', '~']:
-            text = self.expand_path(text)
-            text_class = self.path_subcom
-        elif text[:2] == '- ':
-            text_class = self.com_subcom
-            text = text[2:]
-        elif text[:2] == '-f':
-            text_class = self.com_subcom
-            text = "firefox" + text[2:]
-        elif text[:3] == '-x ' or text[:6] == '-H -x ':
-            text_class = self.com_subcom
-            text = "xfce4-terminal " + text
-        return(text_class, text)
+    def class_of_subcom(self, subcom):
+        class_of_subcom = "text"
+        if subcom[0] in ['/', '~']:
+            class_of_subcom = self.path_subcom
+            subcom = self.expand_path(subcom)
+        elif subcom[:2] == '- ':
+            class_of_subcom = self.com_subcom
+            subcom = subcom[2:]
+        return(class_of_subcom, subcom)
 
     def class_of_path(self, path):
         class_path = self.error_path_class
@@ -66,41 +67,37 @@ class subcom_main():
             class_path = self.dir_class
         return(class_path, file_ext)
 
-    def tag_handler(self, exp):
-        """ Обработчик тегов
-        exp - тег или выражение (напр: tag1*tag2) без символов обозначения тега
-        Возвращает: лист name_subcom
-        """
-        grep = " | ".join(["grep -F -i '{0}'".format(i) for i in exp.split("*")])
-        # -i - убирает регистрозависимость
-        cmd = "cat '{0}' | cut -f 1,3 | {1} | cut -f 1 | uniq".format(self.base_path, grep)
-        out = subprocess.check_output(cmd, shell=True, universal_newlines=True).rstrip()
-        return(out.split("\n"))
+    # def tag_handler(self, exp):
+    #     """ Обработчик тегов
+    #     exp - тег или выражение (напр: tag1*tag2) без символов обозначения тега
+    #     Возвращает: лист name_subcom
+    #     """
+    #     grep = " | ".join(["grep -F -i '{0}'".format(i) for i in exp.split("*")])
+    #     # -i - убирает регистрозависимость
+    #     cmd = "cat '{0}' | cut -f 1,3 | {1} | cut -f 1 | uniq".format(self.base_path, grep)
+    #     out = subprocess.check_output(cmd, shell=True, universal_newlines=True).rstrip()
+    #     return(out.split("\n"))
 
-    def name_subcom_handler(self, text):
-        """ Обработчик name_subcom
-        text - текст name_subcom без символов обозначения
-        Возвращает: лист строк на которые ссылается name_subcom
-        """
-        cmd = """cat '{0}' | grep -F "│{1}│" | cut -f 2""".format(self.base_path, text) # | sort
-        out = subprocess.check_output(cmd, shell=True, universal_newlines=True).rstrip()
-        return(out.split("\n"))
+    # def name_subcom_handler(self, text):
+    #     """ Обработчик name_subcom
+    #     text - текст name_subcom без символов обозначения
+    #     Возвращает: лист строк на которые ссылается name_subcom
+    #     """
+    #     cmd = """cat '{0}' | grep -F "│{1}│" | cut -f 2""".format(self.base_path, text) # | sort
+    #     out = subprocess.check_output(cmd, shell=True, universal_newlines=True).rstrip()
+    #     return(out.split("\n"))
 
-    def run_com_subcom(self, cmd):
-        # xfce4-terminal
-        # ~$ -H -x mpv https://youtu.be/aKl5DoX5alY│
-        # ~$ -x mpv https://youtu.be/aKl5DoX5alY│
-        # ~$ mpv https://youtu.be/aKl5DoX5alY│
-        if cmd:
-            subprocess.Popen(cmd, shell=True, cwd=self.home_dir)
+    # def run_com_subcom(self, cmd):
+    #     if cmd:
+    #         subprocess.Popen(cmd, shell=True, cwd=self.home_dir)
 
 #----
-    def sha1sum_in_path_subcom(self, sha1sum):
-        """
-        Переводит sha1sum в лист найденных path_subcom
-        """
-        path_subcom_list = []
-        cmd = "cut -f 2,4 '{0}' | grep -F '{1}' | cut -f 2".format(self.base_path, sha1sum)
-        out = subprocess.check_output(cmd, shell=True, universal_newlines=True).rstrip()
-        if out: path_subcom_list = out.split("\n")
-        return(path_subcom_list)
+    # def sha1sum_in_path_subcom(self, sha1sum):
+    #     """
+    #     Переводит sha1sum в лист найденных path_subcom
+    #     """
+    #     path_subcom_list = []
+    #     cmd = "cut -f 2,4 '{0}' | grep -F '{1}' | cut -f 2".format(self.base_path, sha1sum)
+    #     out = subprocess.check_output(cmd, shell=True, universal_newlines=True).rstrip()
+    #     if out: path_subcom_list = out.split("\n")
+    #     return(path_subcom_list)
