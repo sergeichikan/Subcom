@@ -31,7 +31,8 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
             region = self.view.sel()[0]
             line = self.view.line(region)
             self.subcom_main = Subcom.subcom_core.subcom_main()
-            if self.view.scope_name(region.a) == 'source.text_sm meta.name_subcom ':
+            scope_name = self.view.scope_name(region.a)
+            if scope_name == 'source.text_sm meta.name_subcom ':
                 line_end = self.view.substr(sublime.Region(region.b, line.b))
                 i_beg = line_end.index('│') + 1
                 i_end = line_end.index('│', i_beg)
@@ -43,6 +44,8 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
                     self.com_subcom_popup(name, class_of_subcom, subcom_rev)
                 elif class_of_subcom == self.subcom_main.path_subcom:
                     self.path_subcom_popup(name, class_of_subcom, subcom_rev, subcom)
+            elif 'meta.tag_subcom' in scope_name:
+                self.tag_subcom_run(self.view.substr(region))
 
     def popup(self, href):
         class_of_subcom, subcom_rev = href.split("│")
@@ -60,10 +63,18 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
         elif class_of_subcom == 'open_dir':
             sublime.active_window().run_command("open_dir", {"dir": subcom_rev})
 
+    def tag_subcom_run(self, tag):
+        tag_reg_list = self.view.find_all('(\[|\#| ){0}( |\]|\n)'.format(tag))
+        insert = '\n'.join(set([self.view.substr(self.view.line(i)) for i in tag_reg_list]))
+        new_view = self.new_tmp_tab('tag:' + tag)
+        new_view.run_command("insert", {"characters": insert})
+        new_view.set_viewport_position((0, 0))
+        new_view.run_command("p_subcom_fold")
+
     def com_subcom_popup(self, name, class_of_subcom, subcom_rev):
         head = '<div class="{0}">{1}:</div>'.format(self.subcom_main.name_subcom, name)
         body = '<a class="{0}" href="{0}│{1}">{1}</a>'.format(class_of_subcom, subcom_rev)
-        tail = '<br><small><a href="xfce4-terminal -x│{1}">[term]</a> <a href="xfce4-terminal -H -x│{1}">[no exit term]</a></small>'.format(class_of_subcom, subcom_rev)
+        tail = '<br><img src="file:///home/notus/.config/sublime-text-3/Packages/Subcom/icons/Programming-Console-icon.png"><small><a href="xfce4-terminal -x│{1}">[term]</a> <a href="xfce4-terminal -H -x│{1}">[no exit term]</a></small>'.format(class_of_subcom, subcom_rev)
         html = self.generate_html(head, body, tail)
         self.view.show_popup(html, max_width=1200, max_height=670, on_navigate=self.popup)
 
@@ -113,7 +124,7 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
                 head, tail = os.path.split(head)
             root_dirs.reverse()
             insert = ' / '.join(root_dirs) + '\n\n' + "\n".join(dirs_subcom) + '\n\n' + "\n".join(files_subcom)
-            new_view = self.new_tmp_tab(os.path.basename(path))
+            new_view = self.new_tmp_tab('dir:' + os.path.basename(path))
             new_view.run_command("insert", {"characters": insert})
             tag_regions = new_view.find_all(r'\[.+?\]')
             new_view.set_viewport_position((0, 0))
@@ -134,7 +145,7 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
     def new_tmp_tab(self, name):
         new_view = sublime.active_window().new_file()
         new_view.set_syntax_file("Packages/Subcom/Subcom.sublime-syntax")
-        new_view.set_name("tmp: " + name)
+        new_view.set_name(name)
         return(new_view)
 
     # def run_tag(self, exp):
