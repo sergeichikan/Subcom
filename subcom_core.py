@@ -2,7 +2,7 @@
 import os.path
 
 # │name│/full_path│
-# │name│~short_path│
+# │name│@short_path│
 # │name│- command│
 # │name│-x command_in_console│
 # │name│-H -x command_in_no_exit_console│
@@ -22,17 +22,17 @@ class subcom_main():
         self.music_file_ext  = "music"
         self.dir_class = "directory"
         self.error_path_class = "error_path"
-        self.short_dict = {     "~notus": "/home/notus",
-                                "~Dropbox": "~notus/Dropbox",
-                                "~Docs": "~Dropbox/Docs",
-                                "~Sublime Projects": "~Docs/Main/Sublime Projects",
-                                "~User": "~notus/.config/sublime-text-3/Packages/User",
-                                "~MEGA": "~notus/MEGA",
-                                "~Seagate": "/media/notus/Seagate",
-                                "~opt": "/opt",
-                                "~usr": "/usr",
-                                "~Конфиги": "~Docs/Конфиги",
-                                "~Загрузки": "~notus/Загрузки" }
+        self.short_dict = {     "@notus": "/home/notus",
+                                "@Dropbox": "@notus/Dropbox",
+                                "@Docs": "@Dropbox/Docs",
+                                "@Sublime Projects": "@Docs/Main/Sublime Projects",
+                                "@User": "@notus/.config/sublime-text-3/Packages/User",
+                                "@MEGA": "@notus/MEGA",
+                                "@Seagate": "/media/notus/Seagate",
+                                "@opt": "/opt",
+                                "@usr": "/usr",
+                                "@Конфиги": "@Docs/Конфиги",
+                                "@Загрузки": "@notus/Загрузки" }
 
     def expand_path(self, short_path):
         if short_path[0] == "/":
@@ -46,10 +46,10 @@ class subcom_main():
 
     def class_of_subcom(self, subcom):
         class_of_subcom = "text"
-        if subcom[0] in ['/', '~']:
+        if subcom[0] in ['/', '@']:
             class_of_subcom = self.path_subcom
             subcom = self.expand_path(subcom)
-        elif subcom[:2] == '- ':
+        elif subcom[:2] == '~ ':
             class_of_subcom = self.com_subcom
             subcom = subcom[2:]
         return(class_of_subcom, subcom)

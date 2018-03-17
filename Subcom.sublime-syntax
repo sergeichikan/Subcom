@@ -13,7 +13,7 @@ contexts:
     - match: '#\w+'
       scope: meta.tag_subcom
 
-    # - match: '(│.*?│)(?:((/.+?)│)|((~.+?)│)|((-.+?)│))'
+    # - match: '(│.*?│)(?:((/.+?)│)|((@.+?)│)|((~.+?)│))'
     #   captures:
     #     1: meta.name_subcom
     #     2: meta.path_subcom
@@ -23,7 +23,7 @@ contexts:
     #     6: meta.com_subcom
     #     7: meta.fold_subcom
 
-    - match: '(?:(│.*?(\[.*?\]).*?│)|(│.*?│))(?:((/.+?)│)|((~.+?)│)|((-.+?)│))'
+    - match: '(?:(│.*?(\[.*?\]).*?│)|(│.*?│))(?:((/.+?)│)|((@.+?)│)|((~.+?)│))'
       captures:
         1: meta.name_subcom
         2: meta.tag_subcom

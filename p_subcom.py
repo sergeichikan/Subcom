@@ -15,14 +15,9 @@ import Subcom.subcom_core
 
 # ecryptfs_script_path = "/home/notus/Dropbox/Docs/python_scripts/ecryptfs/ecryptfs_thunar.py"
 
-# all_meta = ["~", "-", "=", "f", "d", "p", "e", "t", "n"]
-
 # │name│/full_path│
-# │name│~short_path│
-# │name│- command│
-# │name│-x command_in_console│
-# │name│-H -x command_in_no_exit_console│
-# │name│-f command_url_in_firefox│
+# │name│@short_path│
+# │name│~  command│
 
 class POpenSubcomCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -64,26 +59,29 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
             sublime.active_window().run_command("open_dir", {"dir": subcom_rev})
 
     def tag_subcom_run(self, tag):
-        tag_reg_list = self.view.find_all('(\[|\#| ){0}( |\]|\n)'.format(tag))
-        insert = '\n'.join(set([self.view.substr(self.view.line(i)) for i in tag_reg_list]))
+        # tag_mul = tag.split('*')
+        tag_reg_list = self.view.find_all(r'(\[|\#| ){0}(\s|\]|\Z)'.format(tag))
+        insert = '\n'.join(set([self.view.substr(self.view.line(i.a)).strip() for i in tag_reg_list]))
         new_view = self.new_tmp_tab('tag:' + tag)
         new_view.run_command("insert", {"characters": insert})
         new_view.set_viewport_position((0, 0))
-        new_view.run_command("p_subcom_fold")
+        new_view.run_command("p_fold_subcom")
 
     def com_subcom_popup(self, name, class_of_subcom, subcom_rev):
-        head = '<div class="{0}">{1}:</div>'.format(self.subcom_main.name_subcom, name)
+        in_term_ico = '/home/notus/.config/sublime-text-3/Packages/Subcom/icons/in_term.png'
+        in_term_no_exit_ico = '/home/notus/.config/sublime-text-3/Packages/Subcom/icons/in_term_no_exit.png'
+        icons = '<a href="xfce4-terminal -x│{0}"><img src="file://{1}"></a><a href="xfce4-terminal -H -x│{0}"><img src="file://{2}"></a>'.format(subcom_rev, in_term_ico, in_term_no_exit_ico)
+        head = '<div class="{0}">{1}:{2}</div>'.format(self.subcom_main.name_subcom, name, icons)
         body = '<a class="{0}" href="{0}│{1}">{1}</a>'.format(class_of_subcom, subcom_rev)
-        tail = '<br><img src="file:///home/notus/.config/sublime-text-3/Packages/Subcom/icons/Programming-Console-icon.png"><small><a href="xfce4-terminal -x│{1}">[term]</a> <a href="xfce4-terminal -H -x│{1}">[no exit term]</a></small>'.format(class_of_subcom, subcom_rev)
-        html = self.generate_html(head, body, tail)
+        html = self.generate_html(head, body)
         self.view.show_popup(html, max_width=1200, max_height=670, on_navigate=self.popup)
 
     def path_subcom_popup(self, name, class_of_subcom, subcom_rev, subcom):
-        head = '<div class="{0}">{1}:</div>'.format(self.subcom_main.name_subcom, name)
+        open_dir_icon = '/home/notus/.config/sublime-text-3/Packages/Subcom/icons/open_dir.png'
+        icons = '<a href="open_dir│{0}"><img src="file://{1}"></a>'.format(subcom_rev, open_dir_icon)
+        head = '<div class="{0}">{1}: {2}</div>'.format(self.subcom_main.name_subcom, name, icons)
         body = '<a class="{0}" href="{0}│{1}">{2}</a>'.format(class_of_subcom, subcom_rev, subcom)
-        open_dir_icon = '/home/notus/.config/sublime-text-3/Packages/Subcom/icons/folder_closed.png'
-        icons = ' <a href="open_dir│{0}"><img src="file://{1}"></a>'.format(subcom_rev, open_dir_icon)
-        html = self.generate_html(head, body, icons)
+        html = self.generate_html(head, body)
         self.view.show_popup(html, max_width=1200, max_height=670, on_navigate=self.popup)
 
     def generate_html(  self,
@@ -99,7 +97,7 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
         path_class, file_ext = self.subcom_main.class_of_path(path)
         if path_class == self.subcom_main.file_class:
             if file_ext == self.subcom_main.sublime_project_file_ext:
-                cmd = "/opt/sublime_text/sublime_text '{0}'; sleep 0.5; wmctrl -b add,maximized_vert,maximized_horz -r :ACTIVE:".format(text)
+                cmd = "/opt/sublime_text/sublime_text '{0}'; sleep 0.5; wmctrl -b add,maximized_vert,maximized_horz -r :ACTIVE:".format(path)
                 subprocess.Popen(cmd, shell=True)
             elif file_ext in [self.subcom_main.video_file_ext, self.subcom_main.music_file_ext]:
                 subprocess.Popen("mpv '{0}'".format(path), shell=True)
@@ -128,7 +126,7 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
             new_view.run_command("insert", {"characters": insert})
             tag_regions = new_view.find_all(r'\[.+?\]')
             new_view.set_viewport_position((0, 0))
-            new_view.run_command("p_subcom_fold")
+            new_view.run_command("p_fold_subcom")
         elif path_class == self.subcom_main.error_path_class:
             self.view.show_popup("<b>Ошибка</b>: Несуществующий путь:<br>{0}".format(path), max_width=1200)
 
