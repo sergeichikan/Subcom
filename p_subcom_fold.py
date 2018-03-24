@@ -21,10 +21,10 @@ class PUnfoldSubcomLevelCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         poi = self.view.sel()[0].a
         level = self.view.indentation_level(poi)
-        print(level)
         next_line_poi = self.view.line(poi).b + 1
         next_line_level = self.view.indentation_level(next_line_poi)
         self.view.run_command("fold_by_level", {"level": level + 1})
         if next_line_level == level + 1:
             self.view.unfold(sublime.Region(next_line_poi))
             self.view.run_command("fold_by_level", {"level": level + 2})
+            self.view.run_command("p_fold_subcom")
