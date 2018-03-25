@@ -1,3 +1,8 @@
 [
-	// { "command": "p_subcom_fold", "caption": "subcom_fold" },
+	{ "caption": "-", "id": "subcom" },
+	{ "command": "p_name_subcom_caption"},
+	{ "caption": "Open folder", "command": "p_name_subcom", "args": {"com": "Open folder"}},
+	{ "caption": "Open file", "command": "p_name_subcom", "args": {"com": "Open file"}},
+	{ "caption": "Rename", "command": "p_name_subcom", "args": {"com": "Rename"}},
+	{ "caption": "Delete", "command": "p_name_subcom", "args": {"com": "Delete"}},
 ]

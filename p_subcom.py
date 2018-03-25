@@ -2,8 +2,6 @@
 import sublime, sublime_plugin
 import subprocess
 import os
-import webbrowser
-import sys
 import datetime
 
 # [tag]
@@ -64,22 +62,8 @@ class subcom_main():
             subcom = subcom[2:]
         return(class_of_subcom, subcom)
 
-    def class_of_path(self, path):
-        class_path = self.error_path_class
-        file_ext = False
-        if os.path.isfile(path):
-            class_path = self.file_class
-            root, ext = os.path.splitext(path)
-            if ext == ".sublime-project": file_ext = self.sublime_project_file_ext
-            if ext in [".mp4", ".webm", ".mkv", ".avi", ".jpg", ".png"]: file_ext = self.video_file_ext
-            if ext in [".mp3"]: file_ext = self.music_file_ext
-        elif os.path.isdir(path):
-            class_path = self.dir_class
-        return(class_path, file_ext)
-
 class POpenSubcomCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        self.e = edit
         self.view.run_command("expand_selection", {"to": "word"})
         if self.view.settings().get('syntax') == 'Packages/Subcom/Subcom.sublime-syntax':
             region = self.view.sel()[0]
@@ -97,25 +81,25 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
                 if class_of_subcom == self.subcom_main.com_subcom:
                     self.com_subcom_popup(name, class_of_subcom, subcom_rev)
                 elif class_of_subcom == self.subcom_main.path_subcom:
-                    if name[-1] == '/':
-                        if os.path.isdir(subcom_rev):
-                            date = "[{0} {1}]".format(datetime.date.today().strftime("%d.%m.%Y"), datetime.datetime.now().strftime("%H:%M:%S"))
-                            dirs_subcom = ['Folders: ' + date]
-                            files_subcom = ['Files:   ' + date]
-                            for i in os.listdir(subcom_rev):
-                                i_path = os.path.join(subcom_rev, i)
-                                if os.path.isdir(i_path):
-                                    dirs_subcom.append('│{0}│{1}│'.format(i + '/', i_path))
-                                if os.path.isfile(i_path):
-                                    files_subcom.append('│{0}│{1}│'.format(i, i_path))
-                            level = self.view.indentation_level(region.a)
-                            tabs = "\n{0}".format('\t' * (level + 1))
-                            folders = tabs + tabs.join(dirs_subcom)
-                            files = tabs + tabs.join(files_subcom)
-                            tp = line.b + 1
-                            while self.view.indentation_level(tp) != level: tp = self.view.full_line(tp).b
-                            self.view.replace(edit, sublime.Region(line.b, tp - 1), folders + files)
-                        elif os.path.isfile(subcom_rev):
+                    if os.path.isdir(subcom_rev):
+                        date = "[{0} {1}]".format(datetime.date.today().strftime("%d.%m.%Y"), datetime.datetime.now().strftime("%H:%M:%S"))
+                        dirs_subcom = ['Folders: ' + date]
+                        files_subcom = ['Files:   ' + date]
+                        for i in os.listdir(subcom_rev):
+                            i_path = os.path.join(subcom_rev, i)
+                            if os.path.isdir(i_path):
+                                dirs_subcom.append('│{0}│{1}│'.format(i, i_path))
+                            if os.path.isfile(i_path):
+                                files_subcom.append('│{0}│{1}│'.format(i, i_path))
+                        level = self.view.indentation_level(region.a)
+                        tabs = "\n{0}".format('\t' * (level + 1))
+                        folders = tabs + tabs.join(dirs_subcom)
+                        files = tabs + tabs.join(files_subcom)
+                        tp = line.b + 1
+                        while self.view.indentation_level(tp) != level: tp = self.view.full_line(tp).b
+                        self.view.replace(edit, sublime.Region(line.b, tp - 1), folders + files)
+                    elif os.path.isfile(subcom_rev):
+                        if name[0] == '@':
                             f = open(subcom_rev, encoding='utf-8')
                             level = self.view.indentation_level(region.a)
                             date = "[{0} {1}]".format(datetime.date.today().strftime("%d.%m.%Y"), datetime.datetime.now().strftime("%H:%M:%S"))
@@ -126,10 +110,10 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
                             self.view.replace(edit, sublime.Region(line.b, tp - 1), text)
                             f.close()
                         else:
-                            body = '<b>Ошибка: </b>Несуществующий путь'
-                            self.view.show_popup(body, max_width=1200, max_height=670, on_navigate=self.popup)
+                            self.path_subcom_popup(name, class_of_subcom, subcom_rev, subcom)
                     else:
-                        self.path_subcom_popup(name, class_of_subcom, subcom_rev, subcom)
+                        body = '<b>Ошибка: </b>Несуществующий путь'
+                        self.view.show_popup(body, max_width=1200, max_height=670, on_navigate=self.popup)
             elif 'meta.tag_subcom' in scope_name:
                 self.tag_subcom_run(self.view.substr(region))
 
@@ -146,11 +130,6 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
             subprocess.Popen(class_of_subcom + ' ' + subcom_rev, shell=True)
         elif class_of_subcom == self.subcom_main.path_subcom:
             self.run_path_subcom(subcom_rev)
-        elif class_of_subcom == 'open_dir_icon':
-            sublime.active_window().run_command("open_dir", {"dir": subcom_rev})
-        elif class_of_subcom[:12] == 'rename_icon/':
-            new_path = os.path.join(os.path.dirname(subcom_rev), class_of_subcom[12:])
-            os.rename(subcom_rev, new_path)
 
     def tag_subcom_run(self, tag):
         # tag_mul = tag.split('*')
@@ -171,15 +150,20 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
         self.view.show_popup(html, max_width=1200, max_height=670, on_navigate=self.popup)
 
     def path_subcom_popup(self, name, class_of_subcom, subcom_rev, subcom):
-        open_dir_icon_path = '/home/notus/.config/sublime-text-3/Packages/Subcom/icons/open_dir.png'
-        rename_icon_path = '/home/notus/.config/sublime-text-3/Packages/Subcom/icons/rename.png'
-        open_dir_icon_url = '<a href="open_dir_icon│{0}"><img src="file://{1}"></a>'.format(subcom_rev, open_dir_icon_path)
-        rename_icon_url = '<a href="rename_icon/{2}│{0}"><img src="file://{1}"></a>'.format(subcom_rev, rename_icon_path, name)
-        icons = open_dir_icon_url + rename_icon_url
-        head = '<div class="{0}">{1}: {2}</div>'.format(self.subcom_main.name_subcom, name, icons)
+        head = '<div class="{0}">{1}:</div>'.format(self.subcom_main.name_subcom, name)
         body = '<a class="{0}" href="{0}│{1}">{2}</a>'.format(class_of_subcom, subcom_rev, subcom)
         html = self.generate_html(head, body)
         self.view.show_popup(html, max_width=1200, max_height=670, on_navigate=self.popup)
+
+    def run_path_subcom(self, path):
+        root, ext = os.path.splitext(path)
+        if ext == ".sublime-project":
+            cmd = "/opt/sublime_text/sublime_text '{0}'; sleep 0.5; wmctrl -b add,maximized_vert,maximized_horz -r :ACTIVE:".format(path)
+            subprocess.Popen(cmd, shell=True)
+        if ext in [".mp3", ".mp4", ".webm", ".mkv", ".avi", ".jpg", ".png"]:
+            subprocess.Popen("mpv '{0}'".format(path), shell=True)
+        else:
+            sublime.active_window().open_file(path) # , sublime.TRANSIENT
 
     def generate_html(  self,
                         head = "",
@@ -189,19 +173,6 @@ class POpenSubcomCommand(sublime_plugin.TextCommand):
         bot = '</body>'
         html = top + head + body + tail + bot
         return(html)
-
-    def run_path_subcom(self, path):
-        path_class, file_ext = self.subcom_main.class_of_path(path)
-        if path_class == self.subcom_main.file_class:
-            if file_ext == self.subcom_main.sublime_project_file_ext:
-                cmd = "/opt/sublime_text/sublime_text '{0}'; sleep 0.5; wmctrl -b add,maximized_vert,maximized_horz -r :ACTIVE:".format(path)
-                subprocess.Popen(cmd, shell=True)
-            elif file_ext in [self.subcom_main.video_file_ext, self.subcom_main.music_file_ext]:
-                subprocess.Popen("mpv '{0}'".format(path), shell=True)
-            else:
-                sublime.active_window().open_file(path) # , sublime.TRANSIENT
-        elif path_class == self.subcom_main.error_path_class:
-            self.view.show_popup("<b>Ошибка</b>: Несуществующий путь:<br>{0}".format(path), max_width=1200)
 
     def new_tmp_tab(self, name):
         new_view = sublime.active_window().new_file()
